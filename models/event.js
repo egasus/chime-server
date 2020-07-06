@@ -26,12 +26,20 @@ var eventSchema = mongoose.Schema({
     required: false,
   },
   ch_meeting_status: {
-    type: Number,
+    type: String,
     required: true,
   },
   ch_participants: {
     type: Array,
     required: true,
+  },
+  ch_instructor: {
+    type: String,
+    required: false,
+  },
+  ch_event_uuid: {
+    type: String,
+    require: true,
   },
 });
 

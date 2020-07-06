@@ -32,6 +32,7 @@ router
   .patch(eventController.update)
   .put(eventController.update)
   .delete(eventController.delete);
+router.route("/events/status/:id").put(eventController.updateStatus);
 
 // Export API routes
 module.exports = router;
