@@ -26,7 +26,6 @@ app.use(function (req, res, next) {
 const db_url =
   "mongodb+srv://alyona:123qweasdzxc@cluster0.y7gct.mongodb.net/test?retryWrites=true&w=majority";
 
-// db connect
 // mongoose.connect("mongodb://localhost/resthub", { useNewUrlParser: true });
 mongoose.connect(db_url, { useNewUrlParser: true, useUnifiedTopology: true });
 var db = mongoose.connection;
