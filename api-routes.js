@@ -11,6 +11,7 @@ router.get("/", function (req, res) {
 // Import contact controller
 var participantController = require("./controllers/participantController");
 var eventController = require("./controllers/eventController");
+var meetingController = require("./controllers/meetingController");
 
 // Contact routes
 router
@@ -33,6 +34,9 @@ router
   .put(eventController.update)
   .delete(eventController.delete);
 router.route("/events/status/:id").put(eventController.updateStatus);
+
+router.route("/meeting/join").post(meetingController.join);
+router.route("/meeting/end").post(meetingController.end);
 
 // Export API routes
 module.exports = router;

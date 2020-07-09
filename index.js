@@ -28,6 +28,7 @@ const db_url =
 
 // mongoose.connect("mongodb://localhost/resthub", { useNewUrlParser: true });
 mongoose.connect(db_url, { useNewUrlParser: true, useUnifiedTopology: true });
+
 var db = mongoose.connection;
 
 if (!db) {
