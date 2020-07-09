@@ -37,6 +37,7 @@ router.route("/events/status/:id").put(eventController.updateStatus);
 
 router.route("/meeting/join").post(meetingController.join);
 router.route("/meeting/end").post(meetingController.end);
+router.route("/meeting/attendee").get(meetingController.attendee);
 
 // Export API routes
 module.exports = router;

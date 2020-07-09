@@ -2,6 +2,8 @@ const AWS = require("aws-sdk");
 const { v4: uuidv4 } = require("uuid");
 const isDev = process.env.NODE_ENV !== "production";
 
+const oneDayFromNow = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+
 const config = require("../config");
 if (isDev) {
   AWS.config.update(config.AWS_KEY_CONFIG);
@@ -20,6 +22,7 @@ chime.endpoint = new AWS.Endpoint("https://service.chime.aws.amazon.com");
 
 // Read resource names from the environment
 const meetingsTableName = config.AWS_DETAILS_CONFIG.MEETINGS_TABLE_NAME;
+const attendeesTableName = config.AWS_DETAILS_CONFIG.ATTENDEES_TABLE_NAME;
 const logGroupName = config.AWS_DETAILS_CONFIG.BROWSER_LOG_GROUP_NAME;
 const sqsQueueArn = config.AWS_DETAILS_CONFIG.SQS_QUEUE_ARN;
 const useSqsInsteadOfEventBridge =
@@ -80,38 +83,61 @@ exports.join = async (req, res) => {
   }
 
   // Create new attendee for the meeting
-  console.log("Adding new attendee");
-  const attendee = await chime
-    .createAttendee({
-      // The meeting ID of the created meeting to add the attendee to
-      MeetingId: meeting.Meeting.MeetingId,
+  let attendee = {};
+  try {
+    attendee = await chime
+      .createAttendee({
+        // The meeting ID of the created meeting to add the attendee to
+        MeetingId: meeting.Meeting.MeetingId,
 
-      // Any user ID you wish to associate with the attendeee.
-      // For simplicity here, we use a random UUID for uniqueness
-      // combined with the name the user provided, which can later
-      // be used to help build the roster.
-      ExternalUserId: `${uuidv4().substring(0, 8)}#${query.name}`.substring(
-        0,
-        64
-      ),
-    })
-    .promise();
+        // Any user ID you wish to associate with the attendeee.
+        // For simplicity here, we use a random UUID for uniqueness
+        // combined with the name the user provided, which can later
+        // be used to help build the roster.
+        ExternalUserId: `${uuidv4().substring(0, 8)}#${query.name}`.substring(
+          0,
+          64
+        ),
+      })
+      .promise();
+  } catch (error) {
+    console.log("error-create-attendee", error);
+  }
+
+  try {
+    putAttendee(query.title, attendee.Attendee.AttendeeId, query.name);
+  } catch (error) {
+    console.log("error-put-attendee", error);
+  }
 
   // Return the meeting and attendee responses. The client will use these
   // to join the meeting.
   res.json({
     JoinInfo: {
-      Meeting: meeting,
-      Attendee: attendee,
+      Title: query.title,
+      Meeting: meeting.Meeting,
+      Attendee: attendee.Attendee,
     },
   });
+};
+
+exports.attendee = async (req, res, next) => {
+  const title = req.query.title;
+  const attendeeId = req.query.attendee;
+  const attendeeInfo = {
+    AttendeeInfo: {
+      AttendeeId: attendeeId,
+      Name: await getAttendee(title, attendeeId),
+    },
+  };
+  res.json(attendeeInfo);
 };
 
 exports.end = async (req, res) => {
   // Fetch the meeting by title
   let meeting;
   try {
-    meeting = await getMeeting(req.params.title);
+    meeting = await getMeeting(req.query.title);
   } catch (error) {
     console.log("error-end meeting", error);
   }
@@ -217,6 +243,45 @@ async function putMeeting(title, meeting) {
     console.log("error---put-meeting", error);
   }
 }
+
+const getAttendee = async (title, attendeeId) => {
+  const result = await ddb
+    .getItem({
+      TableName: attendeesTableName,
+      Key: {
+        AttendeeId: {
+          S: `${title}/${attendeeId}`,
+        },
+      },
+    })
+    .promise();
+  if (!result.Item) {
+    return "Unknown";
+  }
+  return result.Item.Name.S;
+};
+
+const putAttendee = async (title, attendeeId, name) => {
+  let response;
+  try {
+    response = await ddb
+      .putItem({
+        TableName: attendeesTableName,
+        Item: {
+          AttendeeId: {
+            S: `${title}/${attendeeId}`,
+          },
+          Name: { S: name },
+          TTL: {
+            N: "" + oneDayFromNow,
+          },
+        },
+      })
+      .promise();
+  } catch (error) {
+    console.log("error-put-attendee-func", error);
+  }
+};
 
 // Creates log stream if necessary and returns the current sequence token
 async function ensureLogStream(cloudWatchClient, logStreamName) {

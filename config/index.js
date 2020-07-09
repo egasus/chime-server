@@ -6,6 +6,7 @@ exports.AWS_KEY_CONFIG = {
 
 exports.AWS_DETAILS_CONFIG = {
   MEETINGS_TABLE_NAME: "Meetings",
+  ATTENDEES_TABLE_NAME: "Attendees",
   BROWSER_LOG_GROUP_NAME: "ChimeBrowserLogs",
   SQS_QUEUE_ARN: "MeetingNotificationsQueue.Arn",
   USE_EVENT_BRIDGE: false,
