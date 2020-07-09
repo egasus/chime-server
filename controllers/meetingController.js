@@ -26,7 +26,6 @@ const useSqsInsteadOfEventBridge =
   config.AWS_DETAILS_CONFIG.USE_EVENT_BRIDGE === "false";
 
 exports.join = async (req, res) => {
-  console.log("join-call");
   const query = req.query;
   if (!query.title || !query.name || !query.region) {
     res.status(400).json({
@@ -39,11 +38,11 @@ exports.join = async (req, res) => {
   try {
     meeting = await getMeeting(query.title);
   } catch (error) {
+    console.log("error-get-meeting", error);
     // res.status(400).json({
     //   message: "Error while getting meeting info",
     // });
   }
-  console.log("meeting", meeting);
   if (!meeting) {
     const request = {
       // Use a UUID for the client request token to ensure that any request retries
@@ -71,8 +70,6 @@ exports.join = async (req, res) => {
         message: "Error while creating meeting info",
       });
     }
-
-    console.log("meeting-->", meeting);
 
     // Store the meeting in the table using the meeting title as the key.
     try {
@@ -173,13 +170,13 @@ exports.logs = async (req, res) => {
 
 // Called when SQS receives records of meeting events and logs out those records
 exports.sqs_handler = async (req, res, next) => {
-  console.log(req.Records);
+  console.log("sqs-handling", req.Records);
   return {};
 };
 
 // Called when EventBridge receives a meeting event and logs out the event
 exports.event_bridge_handler = async (event, context, callback) => {
-  console.log(event);
+  console.log("bridge", event);
   return {};
 };
 
@@ -202,19 +199,23 @@ async function getMeeting(title) {
 
 // Stores the meeting in the table using the meeting title as the key
 async function putMeeting(title, meeting) {
-  await ddb
-    .putItem({
-      TableName: meetingsTableName,
-      Item: {
-        Title: { S: title },
-        Data: { S: JSON.stringify(meeting) },
-        TTL: {
-          N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`, // clean up meeting record one day from now
+  try {
+    const result = await ddb
+      .putItem({
+        TableName: meetingsTableName,
+        Item: {
+          Title: { S: title },
+          Data: { S: JSON.stringify(meeting) },
+          TTL: {
+            N: `${Math.floor(Date.now() / 1000) + 60 * 60 * 24}`, // clean up meeting record one day from now
+          },
         },
-      },
-    })
-    .promise();
-  return;
+      })
+      .promise();
+    return result;
+  } catch (error) {
+    console.log("error---put-meeting", error);
+  }
 }
 
 // Creates log stream if necessary and returns the current sequence token
