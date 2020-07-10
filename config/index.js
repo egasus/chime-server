@@ -1,6 +1,8 @@
 exports.AWS_KEY_CONFIG = {
-  accessKeyId: "AKIAWA2BSLHMSBOEVPWF",
-  secretAccessKey: "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",
+  // accessKeyId: "AKIAWA2BSLHMSBOEVPWF",
+  // secretAccessKey: "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",
+  accessKeyId: "AKIA5L2AC224R7PDQQVL",
+  secretAccessKey: "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",
   region: "us-east-1",
 };
 
