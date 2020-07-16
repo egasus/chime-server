@@ -125,7 +125,7 @@ exports.attendee = async (req, res, next) => {
   const title = req.query.title;
   const attendeeId = req.query.attendee;
   const attendeeInfo = {
-    AttendeeInfo: {
+    Attendee: {
       AttendeeId: attendeeId,
       Name: await getAttendee(title, attendeeId),
     },
