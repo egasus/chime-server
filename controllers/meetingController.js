@@ -23,10 +23,13 @@ chime.endpoint = new AWS.Endpoint("https://service.chime.aws.amazon.com");
 // Read resource names from the environment
 const meetingsTableName = config.AWS_DETAILS_CONFIG.MEETINGS_TABLE_NAME;
 const attendeesTableName = config.AWS_DETAILS_CONFIG.ATTENDEES_TABLE_NAME;
+// const connectionsTableName = config.AWS_DETAILS_CONFIG.CONNECTION_TABLE_NAME;
 const logGroupName = config.AWS_DETAILS_CONFIG.BROWSER_LOG_GROUP_NAME;
 const sqsQueueArn = config.AWS_DETAILS_CONFIG.SQS_QUEUE_ARN;
 const useSqsInsteadOfEventBridge =
   config.AWS_DETAILS_CONFIG.USE_EVENT_BRIDGE === "false";
+
+// const strictVerify = true;
 
 exports.join = async (req, res) => {
   const query = req.query;
