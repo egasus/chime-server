@@ -31,6 +31,7 @@ exports.new = function (req, res) {
   event.ch_participants = req.body.ch_participants;
   event.ch_instructor = req.body.ch_instructor;
   event.ch_event_uuid = uuidv4();
+  event.ch_title = req.body.ch_title;
 
   // save the event and check for errors
   event.save(function (err) {
@@ -66,6 +67,7 @@ exports.update = function (req, res) {
       event.ch_scheduled_end_date_time = req.body.ch_scheduled_end_date_time;
       event.ch_participants = req.body.ch_participants;
       event.ch_instructor = req.body.ch_instructor;
+      event.ch_title = req.body.ch_title;
 
       // save the event and check for errors
       event.save(function (err) {

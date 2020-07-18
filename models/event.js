@@ -41,6 +41,10 @@ var eventSchema = mongoose.Schema({
     type: String,
     require: true,
   },
+  ch_title: {
+    type: String,
+    required: false,
+  },
 });
 
 var Event = (module.exports = mongoose.model("event", eventSchema));
